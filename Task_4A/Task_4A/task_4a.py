@@ -65,7 +65,7 @@ def classify_event(image):
     device = "cpu"
     categories = ["combat","destroyedbuilding","fire","humanitarianaid","militaryvehicles"]
 
-    path = "models/model_s.pth"
+    path = "models/model_1.pth"
     model = torch.load(path)
     model.to(device)
 
@@ -119,26 +119,29 @@ def task_4a_return():
     identified_labels = {}  
     
 ##############	ADD YOUR CODE HERE	##############
-    # cam = cv2.VideoCapture(1)
-    # result, image = cam.read()
+    
+    cam = cv2.VideoCapture(1)
+    result, image = cam.read()
 
 
-    path = "test images/image 2.jpg"
-    image = cv2.imread(path)
+    # path = "test images/image 2.jpg"
+    # image = cv2.imread(path)
 
-    image = image[150:800,400:1300]
+    image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-    THRESHOLD = 190
+    #image = image[120:510,100:400]
 
-    lower_bound = 60
-    higher_bound = 130
+    THRESHOLD = 150
+
+    lower_bound = 30
+    higher_bound = 50
 
     img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     (thresh, img_bin) = cv2.threshold(img, THRESHOLD, 255,cv2.THRESH_BINARY)
 
     # Defining a kernel length
-    kernel_length = np.array(img).shape[1]//80
+    kernel_length = np.array(img).shape[1]//40
 
     # A verticle kernel of (1 X kernel_length), which will detect all the verticle lines from the image.
     verticle_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, kernel_length))
@@ -168,6 +171,7 @@ def task_4a_return():
     # Sort all the contours by top to bottom.
     #(contours, boundingBoxes) = contours, hierarchy
 
+    image_out = image
     dir_path = "images/"
     idx_to_letter = ["A", "B", "C", "D", "E"]
     idx = 0
@@ -180,9 +184,19 @@ def task_4a_return():
             img_pth = dir_path + "img_" + str(idx) + '.png'
             cv2.imwrite(img_pth, new_img)
 
-            identified_labels[idx_to_letter[idx]] = classify_event(img_pth)
+            event_label = classify_event(img_pth)
+            identified_labels[idx_to_letter[idx]] = event_label
+
+            image_out = cv2.rectangle(image_out, (x, y), (x + w, y + h), (0,255,0), 1)
+            cv2.putText(image_out, event_label, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
 
             idx += 1
+
+    cv2.imshow("GG_3351", image_out) 
+
+    cv2.waitKey(0) 
+
+    cv2.destroyAllWindows() 
 
 ##################################################
     return identified_labels

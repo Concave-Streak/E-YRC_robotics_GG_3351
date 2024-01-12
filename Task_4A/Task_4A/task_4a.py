@@ -123,14 +123,13 @@ def task_4a_return():
     cam = cv2.VideoCapture(1)
     result, image = cam.read()
 
-
     # path = "test images/image 2.jpg"
     # image = cv2.imread(path)
 
     image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
     #image = image[120:510,100:400]
-
+    
     THRESHOLD = 150
 
     lower_bound = 30
@@ -187,16 +186,33 @@ def task_4a_return():
             event_label = classify_event(img_pth)
             identified_labels[idx_to_letter[idx]] = event_label
 
-            image_out = cv2.rectangle(image_out, (x, y), (x + w, y + h), (0,255,0), 1)
-            cv2.putText(image_out, event_label, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
-
             idx += 1
 
-    cv2.imshow("GG_3351", image_out) 
+    while True:
+        ret, frame = cam.read()
 
-    cv2.waitKey(0) 
+        # Rotate the frame
+        frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-    cv2.destroyAllWindows() 
+        idx = 0
+        for index, contour in enumerate(contours):
+            # Returns the location and width,height for every contour
+            x, y, w, h = cv2.boundingRect(contour)
+            if (w >= lower_bound and h >= lower_bound) and (w <= higher_bound and h <= higher_bound) and (hierarchy[0,index,2] == -1):
+
+                event_label = identified_labels[idx_to_letter[idx]]
+
+                frame = cv2.rectangle(frame, (x, y), (x + w, y + h), (0,255,0), 1)
+                cv2.putText(frame, event_label, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
+
+                idx += 1
+
+        # Display the frame
+        cv2.imshow("GG_3351", frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
 
 ##################################################
     return identified_labels
